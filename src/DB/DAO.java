@@ -68,4 +68,44 @@ public class DAO {
         }
         return number;
     }
+    
+    public static int updateAvailable(DTO.DTOPlayer user) throws SQLException{  // This function is called when the user logs in
+        DriverManager.registerDriver(new ClientDriver());                       // This function works properly when it returns 1
+        Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
+                "root", "root");
+        PreparedStatement ps = con.prepareStatement("update player set status = ? where username = ?");
+        ps.setString(1, "Available");
+        ps.setString(2, user.getUserName());
+        int rowsUpdated = ps.executeUpdate();
+        ps.close();
+        con.close();
+        return rowsUpdated;
+    }
+    
+    public static int updateInGame(DTO.DTOPlayer user) throws SQLException{ // This function is called when the user enters a game
+        DriverManager.registerDriver(new ClientDriver());                   // This function works properly when it returns 1
+        Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
+                "root", "root");
+        PreparedStatement ps = con.prepareStatement("update player set status = ? where username = ?");
+        ps.setString(1, "In-Game");
+        ps.setString(2, user.getUserName());
+        int rowsUpdated = ps.executeUpdate();
+        ps.close();
+        con.close();
+        return rowsUpdated;
+    }
+    
+    public static int updateOffline(DTO.DTOPlayer user) throws SQLException{    // This function is called when the user logs out
+        DriverManager.registerDriver(new ClientDriver());                       // This function works properly when it returns 1
+        Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
+                "root", "root");
+        PreparedStatement ps = con.prepareStatement("update player set status = ? where username = ?");
+        ps.setString(1, "Offline");
+        ps.setString(2, user.getUserName());
+        int rowsUpdated = ps.executeUpdate();
+        ps.close();
+        con.close();
+        return rowsUpdated;
+}
+
 }
