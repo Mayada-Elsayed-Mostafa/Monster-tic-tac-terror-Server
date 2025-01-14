@@ -29,7 +29,7 @@ public class DAO {
         DriverManager.registerDriver(new ClientDriver());
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
-        PreparedStatement ps = con.prepareStatement("select COUNT(*) from PLAYER where STAUS = ?",
+        PreparedStatement ps = con.prepareStatement("select COUNT(*) from PLAYER where STATUS = ?",
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ps.setString(1, MassageType.STATUS_ONLINE);
         ResultSet rs = ps.executeQuery();
@@ -44,7 +44,7 @@ public class DAO {
         DriverManager.registerDriver(new ClientDriver());
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
-        PreparedStatement ps = con.prepareStatement("select COUNT(*) from PLAYER where STAUS = ?",
+        PreparedStatement ps = con.prepareStatement("select COUNT(*) from PLAYER where STATUS = ?",
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ps.setString(1, MassageType.STATUS_OFFLINE);
         ResultSet rs = ps.executeQuery();
@@ -59,7 +59,7 @@ public class DAO {
         DriverManager.registerDriver(new ClientDriver());
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
-        PreparedStatement ps = con.prepareStatement("select COUNT(*) from PLAYER where STAUS = ?",
+        PreparedStatement ps = con.prepareStatement("select COUNT(*) from PLAYER where STATUS = ?",
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ps.setString(1, MassageType.STATUS_INGAME);
         ResultSet rs = ps.executeQuery();
