@@ -1,7 +1,12 @@
 package tictactoegameitiserver;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -14,6 +19,10 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 
 public class ServerUIController implements Initializable {
+    
+    public static ServerSocket server=null;
+    
+    public static boolean isFinished=true;
     
     private Label label;
     @FXML
@@ -46,10 +55,21 @@ public class ServerUIController implements Initializable {
 
     @FXML
     private void handleStartBtn(ActionEvent event){
-        // This button is clickable by default and when we click on it, it becomes unclickable
-        // We should write the logic of Start Button Here -->> the server starting to listen to connections
-        // When we click on this button, the pie chart appears
-        // This pieChart should be updated once a client signed in, entered a game, or signed out
+        ServerUIController.isFinished=false;
+        Thread start=new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(!isFinished){
+                    try {
+                        server=new ServerSocket(5005);
+                        Socket s=server.accept();
+                        new ServerHandler(s);
+                    } catch (IOException ex) {
+                        Logger.getLogger(ServerUIController.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        });
         
         ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
                 new PieChart.Data("Available", 10),
