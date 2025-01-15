@@ -49,10 +49,12 @@ public class ServerHandler extends Thread {
         while (!isFinished) {
             try {
                 String msg = massageIn.readUTF();
-                response = (JSONObject) JSONValue.parse(msg); 
-                String msgType = (String) response.get("type"); 
-                if (msgType.equals(MassageType.LOGIN_MSG)) { 
+                response = (JSONObject) JSONValue.parse(msg);
+                String msgType = (String) response.get("type");
+                if (msgType.equals(MassageType.LOGIN_MSG)) {
                     login(msg);
+                } else if (msgType.equals(MassageType.REGISTER_MSG)) {
+                    signup(msg);
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -85,6 +87,29 @@ public class ServerHandler extends Thread {
             Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+    }
+
+    private void signup(String msg) {
+        try {
+            JSONObject signResponse = new JSONObject();
+
+            try {
+                DTOPlayer user = (DTOPlayer) response.get("data");
+                boolean isSuccessful = DAO.signup(user);
+                if (isSuccessful) {
+                    signResponse.put("type", MassageType.REGISTER_SUCCESS_MSG);
+                } else {
+                    signResponse.put("type", MassageType.REGISTER_FAIL_MSG);
+                }
+
+            } catch (SQLException ex) {
+                signResponse.put("type", MassageType.REGISTER_FAIL_MSG);
+
+            }
+            massageOut.writeUTF(signResponse.toJSONString());
+        } catch (IOException ex) {
+            Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void sendToAll(String s) throws IOException {

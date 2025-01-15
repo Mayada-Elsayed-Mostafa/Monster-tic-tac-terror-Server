@@ -25,8 +25,23 @@ public class DAO {
         ps.close();
         return exists;
     }
-    
-    public static ArrayList<String> getavailablePlayersList(String username) throws SQLException{
+
+    public static boolean signup(DTOPlayer user) throws SQLException {
+        String sql = "INSERT INTO PLAYER (username, password) VALUES (?, ?)";
+        Connection connection = DriverManager.getConnection("jdbc:derby://localhost:1527/Player", "root", "root");
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setString(1, user.getUserName());
+        preparedStatement.setString(2, user.getPassword());
+
+        int rowsInserted = preparedStatement.executeUpdate();
+        preparedStatement.close();
+        connection.close();
+
+        return rowsInserted > 0;
+
+    }
+
+    public static ArrayList<String> getavailablePlayersList(String username) throws SQLException {
         ArrayList<String> availablePlayersList = new ArrayList<>();
         DriverManager.registerDriver(new ClientDriver());
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
@@ -34,38 +49,16 @@ public class DAO {
         PreparedStatement ps = con.prepareStatement("select USERNAME from PLAYER where STATUS = ? and USERNAME != ?",
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ps.setString(1, MassageType.STATUS_ONLINE);
-        ps.setString(2,username);
+        ps.setString(2, username);
         ResultSet rs = ps.executeQuery();
-        while(rs.next()){
-           availablePlayersList.add(rs.getString("USERNAME"));
+        while (rs.next()) {
+            availablePlayersList.add(rs.getString("USERNAME"));
         }
         return availablePlayersList;
     }
-    
-    public boolean signup(DTOPlayer user) {
-        String sql = "INSERT INTO PLAYER (username, password) VALUES (?, ?)";
-        try (Connection connection = DriverManager.getConnection("jdbc:derby://localhost:1527/Player", "root", "root");
-                PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
-            preparedStatement.setString(1, user.getUserName());
-            preparedStatement.setString(2, user.getPassword());
-
-            int rowsInserted = preparedStatement.executeUpdate();
-            preparedStatement.close();
-
-            return rowsInserted > 0;
-        } catch (SQLIntegrityConstraintViolationException e) {
-            System.err.println("Duplicate username: " + e.getMessage());
-            return false;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-
-    }
-
-    public static int getAvailablePlayersForServer() throws SQLException{
-        int number=0;
+    public static int getAvailablePlayersForServer() throws SQLException {
+        int number = 0;
         DriverManager.registerDriver(new ClientDriver());
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
@@ -73,14 +66,14 @@ public class DAO {
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ps.setString(1, MassageType.STATUS_ONLINE);
         ResultSet rs = ps.executeQuery();
-        if(rs.next()){
-            number=rs.getInt(1);
+        if (rs.next()) {
+            number = rs.getInt(1);
         }
         return number;
     }
-    
-    public static int getOfflinePlayersForServer() throws SQLException{
-        int number=0;
+
+    public static int getOfflinePlayersForServer() throws SQLException {
+        int number = 0;
         DriverManager.registerDriver(new ClientDriver());
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
@@ -88,14 +81,14 @@ public class DAO {
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ps.setString(1, MassageType.STATUS_OFFLINE);
         ResultSet rs = ps.executeQuery();
-        if(rs.next()){
-            number=rs.getInt(1);
+        if (rs.next()) {
+            number = rs.getInt(1);
         }
         return number;
     }
-    
-    public static int getInGamePlayersForServer() throws SQLException{
-        int number=0;
+
+    public static int getInGamePlayersForServer() throws SQLException {
+        int number = 0;
         DriverManager.registerDriver(new ClientDriver());
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
@@ -103,14 +96,13 @@ public class DAO {
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ps.setString(1, MassageType.STATUS_INGAME);
         ResultSet rs = ps.executeQuery();
-        if(rs.next()){
-            number=rs.getInt(1);
+        if (rs.next()) {
+            number = rs.getInt(1);
         }
         return number;
     }
-    
-    
-    public static int updateAvailable(DTO.DTOPlayer user) throws SQLException{  // This function is called when the user logs in
+
+    public static int updateAvailable(DTO.DTOPlayer user) throws SQLException {  // This function is called when the user logs in
         DriverManager.registerDriver(new ClientDriver());                       // This function works properly when it returns 1
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
@@ -122,8 +114,8 @@ public class DAO {
         con.close();
         return rowsUpdated;
     }
-    
-    public static int updateInGame(DTO.DTOPlayer user) throws SQLException{ // This function is called when the user enters a game
+
+    public static int updateInGame(DTO.DTOPlayer user) throws SQLException { // This function is called when the user enters a game
         DriverManager.registerDriver(new ClientDriver());                   // This function works properly when it returns 1
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
@@ -135,8 +127,8 @@ public class DAO {
         con.close();
         return rowsUpdated;
     }
-    
-    public static int updateOffline(DTO.DTOPlayer user) throws SQLException{    // This function is called when the user logs out
+
+    public static int updateOffline(DTO.DTOPlayer user) throws SQLException {    // This function is called when the user logs out
         DriverManager.registerDriver(new ClientDriver());                       // This function works properly when it returns 1
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
@@ -147,6 +139,6 @@ public class DAO {
         ps.close();
         con.close();
         return rowsUpdated;
-}
+    }
 
 }
