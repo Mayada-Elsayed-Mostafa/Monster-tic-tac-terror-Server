@@ -3,6 +3,7 @@ package DB;
 import DTO.DTOPlayer;
 import org.apache.derby.jdbc.ClientDriver;
 import java.sql.*;
+import java.util.ArrayList;
 import tictactoegameitiserver.MassageType;
 
 public class DAO {
@@ -24,12 +25,29 @@ public class DAO {
         ps.close();
         return exists;
     }
+    
+    public static ArrayList<String> getavailablePlayersList(String username) throws SQLException{
+        ArrayList<String> availablePlayersList = new ArrayList<>();
+        DriverManager.registerDriver(new ClientDriver());
+        Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
+                "root", "root");
+        PreparedStatement ps = con.prepareStatement("select USERNAME from PLAYER where STATUS = ? and USERNAME != ?",
+                ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        ps.setString(1, MassageType.STATUS_ONLINE);
+        ps.setString(2,username);
+        ResultSet rs = ps.executeQuery();
+        while(rs.next()){
+           availablePlayersList.add(rs.getString("USERNAME"));
+        }
+        return availablePlayersList;
+    }
+    
     public static int getAvailablePlayersForServer() throws SQLException{
         int number=0;
         DriverManager.registerDriver(new ClientDriver());
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
-        PreparedStatement ps = con.prepareStatement("select COUNT(*) from PLAYER where STAUS = ?",
+        PreparedStatement ps = con.prepareStatement("select COUNT(*) from PLAYER where STATUS = ?",
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ps.setString(1, MassageType.STATUS_ONLINE);
         ResultSet rs = ps.executeQuery();
@@ -44,7 +62,7 @@ public class DAO {
         DriverManager.registerDriver(new ClientDriver());
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
-        PreparedStatement ps = con.prepareStatement("select COUNT(*) from PLAYER where STAUS = ?",
+        PreparedStatement ps = con.prepareStatement("select COUNT(*) from PLAYER where STATUS = ?",
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ps.setString(1, MassageType.STATUS_OFFLINE);
         ResultSet rs = ps.executeQuery();
@@ -59,7 +77,7 @@ public class DAO {
         DriverManager.registerDriver(new ClientDriver());
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
-        PreparedStatement ps = con.prepareStatement("select COUNT(*) from PLAYER where STAUS = ?",
+        PreparedStatement ps = con.prepareStatement("select COUNT(*) from PLAYER where STATUS = ?",
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ps.setString(1, MassageType.STATUS_INGAME);
         ResultSet rs = ps.executeQuery();
@@ -68,6 +86,7 @@ public class DAO {
         }
         return number;
     }
+    
     
     public static int updateAvailable(DTO.DTOPlayer user) throws SQLException{  // This function is called when the user logs in
         DriverManager.registerDriver(new ClientDriver());                       // This function works properly when it returns 1
