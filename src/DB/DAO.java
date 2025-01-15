@@ -24,6 +24,27 @@ public class DAO {
         ps.close();
         return exists;
     }
+    public boolean signup(DTOPlayer user) {
+        String sql = "INSERT INTO PLAYER (username, password) VALUES (?, ?)";
+        try (Connection connection = DriverManager.getConnection("jdbc:derby://localhost:1527/Player", "root", "root");
+                PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, user.getUserName());
+            preparedStatement.setString(2, user.getPassword());
+
+            int rowsInserted = preparedStatement.executeUpdate();
+            preparedStatement.close();
+
+            return rowsInserted > 0;
+        } catch (SQLIntegrityConstraintViolationException e) {
+            System.err.println("Duplicate username: " + e.getMessage());
+            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+    }
     public static int getAvailablePlayersForServer() throws SQLException{
         int number=0;
         DriverManager.registerDriver(new ClientDriver());
