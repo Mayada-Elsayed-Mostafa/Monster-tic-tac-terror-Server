@@ -28,12 +28,12 @@ public class DAO {
     }
 
     public static boolean signup(DTOPlayer user) throws SQLException {
-        String sql = "INSERT INTO PLAYER (username, password) VALUES (?, ?)";
+        String sql = "INSERT INTO PLAYER (username, password, STATUS) VALUES (?, ?, ?)";
         Connection connection = DriverManager.getConnection("jdbc:derby://localhost:1527/Player", "root", "root");
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, user.getUserName());
         preparedStatement.setString(2, user.getPassword());
-
+        preparedStatement.setString(3, "offline");
         int rowsInserted = preparedStatement.executeUpdate();
         preparedStatement.close();
         connection.close();
