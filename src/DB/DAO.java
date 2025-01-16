@@ -4,6 +4,7 @@ import DTO.DTOPlayer;
 import org.apache.derby.jdbc.ClientDriver;
 import java.sql.*;
 import java.util.ArrayList;
+import org.json.simple.JSONObject;
 import tictactoegameitiserver.MassageType;
 
 public class DAO {
@@ -52,7 +53,10 @@ public class DAO {
         ps.setString(2, username);
         ResultSet rs = ps.executeQuery();
         while (rs.next()) {
-            availablePlayersList.add(rs.getString("USERNAME"));
+            JSONObject onlinePlayer = new JSONObject();
+            onlinePlayer.put("username", rs.getString("USERNAME"));
+            onlinePlayer.put("score", rs.getInt("SCORE"));
+            availablePlayersList.add(onlinePlayer.toJSONString());
         }
         return availablePlayersList;
     }
