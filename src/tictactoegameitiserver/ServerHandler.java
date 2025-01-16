@@ -36,8 +36,10 @@ public class ServerHandler extends Thread {
     boolean inGame = false;
     ServerHandler currentOpponent = null;
     boolean isFinished = false;
+    Socket currentSocket;
 
     public ServerHandler(Socket s) throws IOException {
+        currentSocket=s;
         messageIn = new DataInputStream(s.getInputStream());
         messageOut = new DataOutputStream(s.getOutputStream());
         ServerHandler.clients.add(this);
@@ -55,6 +57,9 @@ public class ServerHandler extends Thread {
                     login(msg);
                 } else if (msgType.equals(MassageType.REGISTER_MSG)) {
                     signup(msg);
+                }
+                else if(msgType.equals(MassageType.CLIENT_CLOSE_MSG)){
+                    clientClose();
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -112,6 +117,31 @@ public class ServerHandler extends Thread {
             messageOut.writeUTF(signResponse.toJSONString());
         } catch (IOException ex) {
             Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void clientClose() throws SQLException, IOException{
+        if(inGame){
+            
+        }
+        else if(username!=null){
+            DAO.updateOffline(new DTOPlayer(username, username));
+            availableClients.remove(username);
+            clients.remove(this);
+            sendUsernamesToAvailable();
+            username=null;
+            isFinished=true;
+            messageIn.close();
+            messageOut.close();
+            currentSocket.close();
+        }
+        else{
+            clients.remove(this);
+            sendUsernamesToAvailable();
+            isFinished=true;
+            messageIn.close();
+            messageOut.close();
+            currentSocket.close();
         }
     }
 
