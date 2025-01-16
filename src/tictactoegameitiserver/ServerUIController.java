@@ -55,13 +55,18 @@ public class ServerUIController implements Initializable {
 
     @FXML
     private void handleStartBtn(ActionEvent event){
+        try {
+            server=new ServerSocket(5005);
+        } catch (IOException ex) {
+            Logger.getLogger(ServerUIController.class.getName()).log(Level.SEVERE, null, ex);
+        }
         ServerUIController.isFinished=false;
         Thread start=new Thread(new Runnable() {
             @Override
             public void run() {
                 while(!isFinished){
                     try {
-                        server=new ServerSocket(5005);
+                        
                         Socket s=server.accept();
                         new ServerHandler(s);
                     } catch (IOException ex) {
@@ -70,7 +75,7 @@ public class ServerUIController implements Initializable {
                 }
             }
         });
-        
+        start.start();
         ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
                 new PieChart.Data("Available", 10),
                 new PieChart.Data("In-game", 4),
