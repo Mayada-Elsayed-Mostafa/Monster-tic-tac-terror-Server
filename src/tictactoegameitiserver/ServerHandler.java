@@ -26,10 +26,10 @@ import org.json.simple.JSONValue;
  */
 public class ServerHandler extends Thread {
 
-    DataInputStream massageIn;
-    DataOutputStream massageOut;
+    DataInputStream messageIn;
+    DataOutputStream messageOut;
     static Vector<ServerHandler> clients = new Vector<ServerHandler>();
-    static HashMap<String, ServerHandler> avaliableClients = new HashMap<>();
+    static HashMap<String, ServerHandler> availableClients = new HashMap<>();
     static HashMap<String, ServerHandler> inGameClients = new HashMap<>();
     JSONObject response;
     String username = null;
@@ -38,8 +38,8 @@ public class ServerHandler extends Thread {
     boolean isFinished = false;
 
     public ServerHandler(Socket s) throws IOException {
-        massageIn = new DataInputStream(s.getInputStream());
-        massageOut = new DataOutputStream(s.getOutputStream());
+        messageIn = new DataInputStream(s.getInputStream());
+        messageOut = new DataOutputStream(s.getOutputStream());
         ServerHandler.clients.add(this);
         start();
     }
@@ -48,7 +48,7 @@ public class ServerHandler extends Thread {
     public void run() {
         while (!isFinished) {
             try {
-                String msg = massageIn.readUTF();
+                String msg = messageIn.readUTF();
                 response = (JSONObject) JSONValue.parse(msg);
                 String msgType = (String) response.get("type");
                 if (msgType.equals(MassageType.LOGIN_MSG)) {
@@ -67,22 +67,24 @@ public class ServerHandler extends Thread {
 
     private void login(String msg) throws SQLException {
         try {
-            DTOPlayer user = (DTOPlayer) response.get("data");
+            JSONObject player =(JSONObject) JSONValue.parse((String) response.get("data"));
+            DTOPlayer user = new DTOPlayer((String)player.get("username"),(String)player.get("password"));
+            JSONObject loginData = new JSONObject();
             boolean isSuccessful = DAO.logIn(user);
-            JSONObject loginResponse = new JSONObject();
             if (isSuccessful) {
-                avaliableClients.put(msg, this);
-                sendUsernamesToAvailable();
+                availableClients.put(msg, this);
                 DAO.updateAvailable(user);
                 sendUsernamesToAvailable();
-                loginResponse.put("type", MassageType.LOGINSUCCESS_MSG);
-                loginResponse.put("data", DAO.getavailablePlayersList(username));
+                
+                loginData.put("type", MassageType.LOGINSUCCESS_MSG);
+                loginData.put("data", DAO.getavailablePlayersList(username));
+                
                 username = user.getUserName();
             } else {
-                loginResponse.put("type", MassageType.LOGINFAIL_MSG);
-                loginResponse.put("data", null);
+                loginData.put("type", MassageType.LOGINFAIL_MSG);
+                loginData.put("data", null);
             }
-            massageOut.writeUTF(loginResponse.toJSONString());
+            messageOut.writeUTF(loginData.toJSONString());
         } catch (IOException ex) {
             Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -106,7 +108,7 @@ public class ServerHandler extends Thread {
                 signResponse.put("type", MassageType.REGISTER_FAIL_MSG);
 
             }
-            massageOut.writeUTF(signResponse.toJSONString());
+            messageOut.writeUTF(signResponse.toJSONString());
         } catch (IOException ex) {
             Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -114,18 +116,17 @@ public class ServerHandler extends Thread {
 
     public void sendToAll(String s) throws IOException {
         for (ServerHandler client : clients) {
-            client.massageOut.writeUTF(s);
+            client.messageOut.writeUTF(s);
         }
     }
 
     public void sendUsernamesToAvailable() throws IOException, SQLException {
-        for (ServerHandler handler : avaliableClients.values()) {
+        for (ServerHandler handler : availableClients.values()) {
             ArrayList<String> availablePlayersList = DAO.getavailablePlayersList(handler.username);
             JSONObject availablePlayers = new JSONObject();
             availablePlayers.put("type", MassageType.UPDATE_LIST_MSG);
             availablePlayers.put("data", availablePlayersList);
-            handler.massageOut.writeUTF(availablePlayers.toJSONString());
+            handler.messageOut.writeUTF(availablePlayers.toJSONString());
         }
     }
-
 }
