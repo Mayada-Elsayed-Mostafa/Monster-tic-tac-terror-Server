@@ -94,7 +94,8 @@ public class ServerHandler extends Thread {
             JSONObject signResponse = new JSONObject();
 
             try {
-                DTOPlayer user = (DTOPlayer) response.get("data");
+                JSONObject object =(JSONObject) JSONValue.parse((String)response.get("data"));
+                DTOPlayer user = new DTOPlayer((String)object.get("username"),(String)object.get("password"));
                 boolean isSuccessful = DAO.signup(user);
                 if (isSuccessful) {
                     signResponse.put("type", MassageType.REGISTER_SUCCESS_MSG);
