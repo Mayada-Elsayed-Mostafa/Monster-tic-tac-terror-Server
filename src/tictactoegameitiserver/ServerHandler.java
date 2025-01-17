@@ -81,10 +81,9 @@ public class ServerHandler extends Thread {
                 DAO.updateAvailable(user);
                 sendUsernamesToAvailable();
                 
+                username = user.getUserName();
                 loginData.put("type", MassageType.LOGINSUCCESS_MSG);
                 loginData.put("data", DAO.getavailablePlayersList(username));
-                
-                username = user.getUserName();
             } else {
                 loginData.put("type", MassageType.LOGINFAIL_MSG);
                 loginData.put("data", null);
