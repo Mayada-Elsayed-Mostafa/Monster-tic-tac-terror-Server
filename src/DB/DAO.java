@@ -47,7 +47,7 @@ public class DAO {
         DriverManager.registerDriver(new ClientDriver());
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
-        PreparedStatement ps = con.prepareStatement("select USERNAME from PLAYER where STATUS = ? and USERNAME != ?",
+        PreparedStatement ps = con.prepareStatement("select USERNAME, SCORE from PLAYER where STATUS = ? and USERNAME != ?",
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ps.setString(1, MassageType.STATUS_ONLINE);
         ps.setString(2, username);
@@ -111,7 +111,7 @@ public class DAO {
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
         PreparedStatement ps = con.prepareStatement("update player set status = ? where username = ?");
-        ps.setString(1, "Available");
+        ps.setString(1, MassageType.STATUS_ONLINE);
         ps.setString(2, user.getUserName());
         int rowsUpdated = ps.executeUpdate();
         ps.close();
@@ -124,7 +124,7 @@ public class DAO {
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
         PreparedStatement ps = con.prepareStatement("update player set status = ? where username = ?");
-        ps.setString(1, "In-Game");
+        ps.setString(1, MassageType.STATUS_INGAME);
         ps.setString(2, user.getUserName());
         int rowsUpdated = ps.executeUpdate();
         ps.close();
@@ -137,7 +137,7 @@ public class DAO {
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
         PreparedStatement ps = con.prepareStatement("update player set status = ? where username = ?");
-        ps.setString(1, "Offline");
+        ps.setString(1, MassageType.STATUS_OFFLINE);
         ps.setString(2, user.getUserName());
         int rowsUpdated = ps.executeUpdate();
         ps.close();
