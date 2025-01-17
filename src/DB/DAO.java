@@ -33,7 +33,7 @@ public class DAO {
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
         preparedStatement.setString(1, user.getUserName());
         preparedStatement.setString(2, user.getPassword());
-        preparedStatement.setString(3, "offline");
+        preparedStatement.setString(3, MassageType.STATUS_OFFLINE);
         int rowsInserted = preparedStatement.executeUpdate();
         preparedStatement.close();
         connection.close();
