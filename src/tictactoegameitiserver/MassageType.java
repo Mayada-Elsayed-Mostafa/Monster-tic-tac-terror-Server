@@ -1,14 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package tictactoegameitiserver;
 
-/**
- *
- * @author HAZEM-LAB
- */
 public class MassageType {
 
     public static final String LOGIN_MSG = "login";
@@ -30,4 +21,9 @@ public class MassageType {
     public static final String STATUS_ONLINE = "online";
     public static final String STATUS_OFFLINE = "offline";
     public static final String STATUS_INGAME = "in game";
+
+    public static final String CHALLENGE_FAIL_MSG = "challenge fail";
+    public static final String CHALLENGE_REJECT_MSG = "challenge reject";
+    public static final String CHALLENGE_START_MSG = "challenge start";
+
 }
