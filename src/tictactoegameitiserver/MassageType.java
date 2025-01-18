@@ -13,6 +13,7 @@ public class MassageType {
     public static final String SERVER_CLOSE_MSG = "server close";
     public static final String CHALLENGE_REQUEST_MSG = "challenge req";
     public static final String CHALLENGE_ACCESSEPT_MSG = "challenge acc";
+    public static final String WITHDRAW_GAME_MSG = "withdraw game";
     public static final String PLAY_MSG = "play";
     public static final String END_GAME_MSG = "end game";
     public static final String RESTART_GAME_MSG = "restart game";
