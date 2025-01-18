@@ -47,7 +47,7 @@ public class DAO {
         DriverManager.registerDriver(new ClientDriver());
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
-        PreparedStatement ps = con.prepareStatement("select USERNAME, SCORE from PLAYER where STATUS = ? and USERNAME != ?",
+        PreparedStatement ps = con.prepareStatement("select USERNAME, TOTAL_SCORE from PLAYER where STATUS = ? and USERNAME != ?",
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ps.setString(1, MassageType.STATUS_ONLINE);
         ps.setString(2, username);
@@ -55,7 +55,7 @@ public class DAO {
         while (rs.next()) {
             JSONObject onlinePlayer = new JSONObject();
             onlinePlayer.put("username", rs.getString("USERNAME"));
-            onlinePlayer.put("score", rs.getInt("SCORE"));
+            onlinePlayer.put("score", rs.getInt("TOTAL_SCORE"));
             availablePlayersList.add(onlinePlayer.toJSONString());
         }
         return availablePlayersList;

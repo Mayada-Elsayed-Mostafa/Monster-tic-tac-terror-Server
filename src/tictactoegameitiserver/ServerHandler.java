@@ -145,7 +145,6 @@ public class ServerHandler extends Thread {
         }
         else{
             clients.remove(this);
-            sendUsernamesToAvailable();
             isFinished=true;
             messageIn.close();
             messageOut.close();
