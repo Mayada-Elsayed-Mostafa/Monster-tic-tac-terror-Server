@@ -14,6 +14,7 @@ import java.net.Socket;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,7 +31,6 @@ public class ServerHandler extends Thread {
     DataOutputStream messageOut;
     static Vector<ServerHandler> clients = new Vector<ServerHandler>();
     static HashMap<String, ServerHandler> availableClients = new HashMap<>();
-    static HashMap<String, ServerHandler> inGameClients = new HashMap<>();
     JSONObject response;
     String username = null;
     boolean inGame = false;
@@ -64,6 +64,15 @@ public class ServerHandler extends Thread {
                 else if(msgType.equals(MassageType.LOGOUT_MSG)){
                     logout();
                 }
+                else if(msgType.equals(MassageType.CHALLENGE_ACCESSEPT_MSG)){
+                    startGame();
+                }
+                else if(msgType.equals(MassageType.PLAY_MSG)){
+                    play(msg);
+                }
+                else if(msgType.equals(MassageType.WITHDRAW_GAME_MSG)){
+                    withdraw(msg);
+                }
             } catch (IOException ex) {
                 try {
                     clientClose();
@@ -86,7 +95,7 @@ public class ServerHandler extends Thread {
             JSONObject loginData = new JSONObject();
             boolean isSuccessful = DAO.logIn(user);
             if (isSuccessful) {
-                availableClients.put(msg, this);
+                availableClients.put(user.getUserName(), this);
                 DAO.updateAvailable(user);
                 sendUsernamesToAvailable();
                 
@@ -130,6 +139,24 @@ public class ServerHandler extends Thread {
     
     public void clientClose() throws SQLException, IOException{
         if(inGame){
+            JSONObject withdraw=new JSONObject();
+            withdraw.put("type", MassageType.WITHDRAW_GAME_MSG);
+            currentOpponent.messageOut.writeUTF(withdraw.toJSONString());
+            // Update score for both players -->> Mayada hasn't finished this function
+            currentOpponent.inGame = false;
+            currentOpponent.currentOpponent = null;
+            availableClients.put(currentOpponent.username, currentOpponent);
+            DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
+            sendUsernamesToAvailable();
+            currentOpponent = null;
+            inGame=false;
+            DAO.updateOffline(new DTOPlayer(username, ""));
+            clients.remove(this);
+            username=null;
+            isFinished=true;
+            messageIn.close();
+            messageOut.close();
+            currentSocket.close();
             
         }
         else if(username!=null){
@@ -158,6 +185,40 @@ public class ServerHandler extends Thread {
         sendUsernamesToAvailable();
         username=null;
     }
+    
+    public void startGame() throws IOException, SQLException{
+        JSONObject data=(JSONObject) JSONValue.parse((String)response.get("data"));
+        JSONObject game=new JSONObject();
+        game.put("type", MassageType.START_GAME_MSG);
+        JSONObject player1=new JSONObject();
+        player1.put("player1",username);
+        player1.put("player2",(String) data.get("opponent"));
+        Random r=new Random();
+        boolean isStarted=r.nextBoolean();
+        player1.put("isStarted", isStarted);
+        JSONObject player2=new JSONObject();
+        player2.put("player1",username);
+        player2.put("player2",(String) data.get("opponent"));
+        player2.put("isStarted", !isStarted);
+        ServerHandler p1=availableClients.get(username);// depend on how will be player 1 the sender or the receiver
+        ServerHandler p2=availableClients.get((String) data.get("opponent"));
+        if(p1!=null && p2!=null){
+            p1.currentOpponent=p2;
+            p1.inGame=true;
+            availableClients.remove(username);
+            DAO.updateInGame(new DTOPlayer(username, ""));
+            p2.currentOpponent=p1;
+            p2.inGame=true;
+            availableClients.remove((String) data.get("opponent"));
+            DAO.updateInGame(new DTOPlayer((String) data.get("opponent"), ""));
+            game.put("data", player1.toJSONString());
+            p1.messageOut.writeUTF(game.toJSONString());
+            game.put("data", player2.toJSONString());
+            p2.messageOut.writeUTF(game.toJSONString());
+        }
+    }
+    
+    
 
     public static void sendToAll(String s) throws IOException {
         for (ServerHandler client : clients) {
@@ -173,5 +234,23 @@ public class ServerHandler extends Thread {
             availablePlayers.put("data", availablePlayersList);
             handler.messageOut.writeUTF(availablePlayers.toJSONString());
         }
+    }
+
+    private void play(String msg) throws IOException {
+        currentOpponent.messageOut.writeUTF(msg);
+    }
+
+    private void withdraw(String msg) throws IOException, SQLException {  
+        currentOpponent.messageOut.writeUTF(msg);
+        // Update score for both players -->> Mayada hasn't finished this function
+        currentOpponent.inGame = false;
+        currentOpponent.currentOpponent = null;
+        availableClients.put(currentOpponent.username, currentOpponent);
+        DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
+        currentOpponent = null;
+        inGame=false;
+        availableClients.put(username, this);
+        DAO.updateAvailable(new DTOPlayer(username, ""));
+        sendUsernamesToAvailable();
     }
 }
