@@ -179,21 +179,21 @@ public class ServerHandler extends Thread {
     }
     
     public void startGame() throws IOException, SQLException{
-        JSONObject data=(JSONObject) JSONValue.parse((String)response.get("data"));
+        String opponent=(String) response.get("data");
         JSONObject game=new JSONObject();
         game.put("type", MassageType.CHALLENGE_START_MSG);
         JSONObject player1=new JSONObject();
         player1.put("player1",username);
-        player1.put("player2",(String) data.get("opponent"));
+        player1.put("player2",opponent);
         Random r=new Random();
         boolean isStarted=r.nextBoolean();
         player1.put("isStarted", isStarted);
         JSONObject player2=new JSONObject();
         player2.put("player1",username);
-        player2.put("player2",(String) data.get("opponent"));
+        player2.put("player2",opponent);
         player2.put("isStarted", !isStarted);
         ServerHandler p1=availableClients.get(username);// depend on how will be player 1 the sender or the receiver
-        ServerHandler p2=availableClients.get((String) data.get("opponent"));
+        ServerHandler p2=availableClients.get(opponent);
         if(p1!=null && p2!=null){
             p1.currentOpponent=p2;
             p1.inGame=true;
@@ -201,8 +201,8 @@ public class ServerHandler extends Thread {
             DAO.updateInGame(new DTOPlayer(username, ""));
             p2.currentOpponent=p1;
             p2.inGame=true;
-            availableClients.remove((String) data.get("opponent"));
-            DAO.updateInGame(new DTOPlayer((String) data.get("opponent"), ""));
+            availableClients.remove(opponent);
+            DAO.updateInGame(new DTOPlayer(opponent, ""));
             game.put("data", player1.toJSONString());
             p1.messageOut.writeUTF(game.toJSONString());
             game.put("data", player2.toJSONString());
