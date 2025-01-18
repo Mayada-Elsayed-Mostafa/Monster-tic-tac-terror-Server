@@ -56,9 +56,17 @@ public class ServerHandler extends Thread {
                     acceptHandler(msg);
                 } else if (msgType.equals(MassageType.CLIENT_CLOSE_MSG)) {
                     clientClose();
+                } else if (msgType.equals(MassageType.LOGOUT_MSG)) {
+                    logout();
                 }
             } catch (IOException ex) {
-                ex.printStackTrace();
+                try {
+                    clientClose();
+                } catch (SQLException ex1) {
+                    Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex1);
+                } catch (IOException ex1) {
+                    Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex1);
+                }
 
             } catch (SQLException ex) {
                 Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
@@ -119,7 +127,8 @@ public class ServerHandler extends Thread {
         if (inGame) {
 
         } else if (username != null) {
-            DAO.updateOffline(new DTOPlayer(username, username));
+            DAO.updateOffline(new DTOPlayer(username, ""));
+
             availableClients.remove(username);
             clients.remove(this);
             sendUsernamesToAvailable();
@@ -130,15 +139,22 @@ public class ServerHandler extends Thread {
             currentSocket.close();
         } else {
             clients.remove(this);
-            sendUsernamesToAvailable();
             isFinished = true;
+
             messageIn.close();
             messageOut.close();
             currentSocket.close();
         }
     }
 
-    public void sendToAll(String s) throws IOException {
+    public void logout() throws SQLException, IOException {
+        DAO.updateOffline(new DTOPlayer(username, ""));
+        availableClients.remove(username);
+        sendUsernamesToAvailable();
+        username = null;
+    }
+
+    public static void sendToAll(String s) throws IOException {
         for (ServerHandler client : clients) {
             client.messageOut.writeUTF(s);
         }
