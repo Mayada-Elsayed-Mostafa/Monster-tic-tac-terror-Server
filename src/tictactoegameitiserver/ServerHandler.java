@@ -207,6 +207,8 @@ public class ServerHandler extends Thread {
             p1.messageOut.writeUTF(game.toJSONString());
             game.put("data", player2.toJSONString());
             p2.messageOut.writeUTF(game.toJSONString());
+            sendUsernamesToAvailable();
+            
         }
     }
     
