@@ -9,7 +9,6 @@ import java.net.Socket;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,7 +21,6 @@ public class ServerHandler extends Thread {
     DataOutputStream messageOut;
     static Vector<ServerHandler> clients = new Vector<ServerHandler>();
     static HashMap<String, ServerHandler> availableClients = new HashMap<>();
-    static HashMap<String, String> gameRequests = new HashMap<>();
     JSONObject response;
     String username = null;
     boolean inGame = false;
@@ -185,13 +183,11 @@ public class ServerHandler extends Thread {
         JSONObject player1=new JSONObject();
         player1.put("player1",username);
         player1.put("player2",opponent);
-        Random r=new Random();
-        boolean isStarted=r.nextBoolean();
-        player1.put("isStarted", isStarted);
+        player1.put("isStarted", true);
         JSONObject player2=new JSONObject();
         player2.put("player1",username);
         player2.put("player2",opponent);
-        player2.put("isStarted", !isStarted);
+        player2.put("isStarted", false);
         ServerHandler p1=availableClients.get(username);// depend on how will be player 1 the sender or the receiver
         ServerHandler p2=availableClients.get(opponent);
         if(p1!=null && p2!=null){
@@ -207,6 +203,8 @@ public class ServerHandler extends Thread {
             p1.messageOut.writeUTF(game.toJSONString());
             game.put("data", player2.toJSONString());
             p2.messageOut.writeUTF(game.toJSONString());
+            sendUsernamesToAvailable();
+            
         }
     }
     
@@ -251,7 +249,6 @@ public class ServerHandler extends Thread {
 
         if (availableClients.containsKey(opponentUsername)) {
             try {
-                gameRequests.put(username, opponentUsername);
                 ServerHandler opponentHandler = availableClients.get(opponentUsername);
 
                 JSONObject challengeMsg = new JSONObject();
