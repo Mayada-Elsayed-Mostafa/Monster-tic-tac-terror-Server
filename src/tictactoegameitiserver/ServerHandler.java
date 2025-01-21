@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 // see the function inBetweenGame and do it if you need addtional tasks and add to the dash board and delete me
@@ -72,6 +73,9 @@ public class ServerHandler extends Thread {
                 else if (msgType.equals(MassageType.WITHDRAW_GAME_MSG)) {
                     withdraw(msg);
                 }
+                else if(msgType.equals(MassageType.IN_BETWEEN_GAME_MSG)){
+                    handleInBetweenGame(msg);
+                }
             } catch (IOException ex) {
                 try {
                     clientClose();
@@ -106,38 +110,27 @@ public class ServerHandler extends Thread {
                 loginData.put("data", null);
             }
             messageOut.writeUTF(loginData.toJSONString());
+            updateUI();
         } catch (IOException ex) {
             Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
 
-    private void handleInBetweenGame() {// add in between massage type in the massage type class and handle it in the run
-        // make both players between game variable true and check if the game have a winner
-        /*
-        json object return for winning
-        {
-            "type":"in between game",
-            "data":{
-                "result":"win",
-                "winner":"username of the winner"
-            }
+    private void handleInBetweenGame(String msg){
+        isBetweenGame=true;
+        currentOpponent.isBetweenGame=true;
+        JSONObject object=(JSONObject) JSONValue.parse(msg);
+        JSONObject result=(JSONObject) JSONValue.parse((String) object.get("data"));
+        if(((String) result.get("result")).equals("win")){
+            String winner=(String) result.get("winner");
+            // Update score for the winner 
         }
-        json object return for tie
-        {
-            "type":"in between game",
-            "data":{
-                "result":"tie"
-            }
-        }
-         */
-        // Update score for the winning player -->> Mayada hasn't finished this function
     }
 
     private void signup(String msg) {
         try {
             JSONObject signResponse = new JSONObject();
-
             try {
                 JSONObject object = (JSONObject) JSONValue.parse((String) response.get("data"));
                 DTOPlayer user = new DTOPlayer((String) object.get("username"), (String) object.get("password"));
@@ -153,6 +146,7 @@ public class ServerHandler extends Thread {
 
             }
             messageOut.writeUTF(signResponse.toJSONString());
+            updateUI();
         } catch (IOException ex) {
             Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -184,6 +178,7 @@ public class ServerHandler extends Thread {
             messageOut.close();
             currentSocket.close();
         }
+        updateUI();
     }
 
     public void logout() throws SQLException, IOException {
@@ -191,6 +186,7 @@ public class ServerHandler extends Thread {
         availableClients.remove(username);
         sendUsernamesToAvailable();
         username = null;
+        updateUI();
     }
 
     public void startGame() throws IOException, SQLException {
@@ -223,6 +219,7 @@ public class ServerHandler extends Thread {
             game.put("data", player2.toJSONString());
             p2.messageOut.writeUTF(game.toJSONString());
             sendUsernamesToAvailable();
+            updateUI();
 
         }
     }
@@ -258,7 +255,9 @@ public class ServerHandler extends Thread {
         inGame = false;
         availableClients.put(username, this);
         DAO.updateAvailable(new DTOPlayer(username, ""));
+        ServerUIController.updateLabels();
         sendUsernamesToAvailable();
+        updateUI();
     }
 
     public void restartRequest() throws IOException {
@@ -346,6 +345,13 @@ public class ServerHandler extends Thread {
         messageIn.close();
         messageOut.close();
         currentSocket.close();
+    }
+
+    private void updateUI() {
+        Platform.runLater(() -> {
+            ServerUIController.updateLabels();
+            ServerUIController.drawPieChart();
+        });
     }
 
 }

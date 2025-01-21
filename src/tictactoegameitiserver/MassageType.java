@@ -21,13 +21,12 @@ public class MassageType {
     public static final String RESTART_REJECT_MSG = "restart rej";  //replay rej
     public static final String CONTINUE_GAME_MSG = "continue game";
     public static final String CLIENT_CLOSE_MSG = "client close";
-
-    public static final String STATUS_ONLINE = "online";
-    public static final String STATUS_OFFLINE = "offline";
-    public static final String STATUS_INGAME = "in game";
-
     public static final String CHALLENGE_FAIL_MSG = "challenge fail";
     public static final String CHALLENGE_REJECT_MSG = "challenge reject";
     public static final String CHALLENGE_START_MSG = "challenge start";
-
+    public static final String IN_BETWEEN_GAME_MSG = "in between game";
+    
+    public static final String STATUS_ONLINE = "online";
+    public static final String STATUS_OFFLINE = "offline";
+    public static final String STATUS_INGAME = "in game";
 }
