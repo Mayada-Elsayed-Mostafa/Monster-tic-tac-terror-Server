@@ -19,6 +19,7 @@ import org.json.simple.JSONValue;
 // see the function inBetweenGame and do it if you need addtional tasks and add to the dash board and delete me
 // see the function inBetweenGame and do it if you need addtional tasks and add to the dash board and delete me
 // see the function inBetweenGame and do it if you need addtional tasks and add to the dash board and delete me
+
 public class ServerHandler extends Thread {
 
     DataInputStream messageIn;
@@ -31,7 +32,7 @@ public class ServerHandler extends Thread {
     ServerHandler currentOpponent = null;
     boolean isFinished = false;
     Socket currentSocket;
-    boolean isBetweenGame=false;
+    boolean isBetweenGame = false;
 
     public ServerHandler(Socket s) throws IOException {
         currentSocket = s;
@@ -54,17 +55,22 @@ public class ServerHandler extends Thread {
                     signup(msg);
                 } else if (msgType.equals(MassageType.CHALLENGE_REQUEST_MSG)) {
                     requestHandler(msg);
-                } else if (msgType.equals(MassageType.CHALLENGE_ACCESSEPT_MSG)) {
+                } else if (msgType.equals(MassageType.CHALLENGE_ACCEPT_MSG)) {
                     startGame();
                 } else if (msgType.equals(MassageType.CLIENT_CLOSE_MSG)) {
                     clientClose();
                 } else if (msgType.equals(MassageType.LOGOUT_MSG)) {
                     logout();
-                }
-                else if(msgType.equals(MassageType.PLAY_MSG)){
+                } else if (msgType.equals(MassageType.PLAY_MSG)) {
                     play(msg);
+                } else if (msgType.equals(MassageType.RESTART_REQUEST_MSG)) {
+                    restartRequest();
+                }else if (msgType.equals(MassageType.RESTART_ACCEPT_MSG)) {
+                    restartGame();
+                }else if (msgType.equals(MassageType.RESTART_REJECT_MSG)) {
+                    endGame();
                 }
-                else if(msgType.equals(MassageType.WITHDRAW_GAME_MSG)){
+                else if (msgType.equals(MassageType.WITHDRAW_GAME_MSG)) {
                     withdraw(msg);
                 }
                 else if(msgType.equals(MassageType.IN_BETWEEN_GAME_MSG)){
@@ -110,7 +116,7 @@ public class ServerHandler extends Thread {
         }
 
     }
-    
+
     private void handleInBetweenGame(String msg){
         isBetweenGame=true;
         currentOpponent.isBetweenGame=true;
@@ -145,18 +151,16 @@ public class ServerHandler extends Thread {
             Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    public void clientClose() throws SQLException, IOException{
-        if(inGame){
-            if(!isBetweenGame){
+
+    public void clientClose() throws SQLException, IOException {
+        if (inGame) {
+            if (!isBetweenGame) {
                 withdrawFromGameInCloseClient();
-            }
-            else{
+            } else {
                 endGameInCloseClient();
             }
-            
-        }
-        else if(username!=null){
+
+        } else if (username != null) {
             DAO.updateOffline(new DTOPlayer(username, ""));
             availableClients.remove(username);
             clients.remove(this);
@@ -184,30 +188,30 @@ public class ServerHandler extends Thread {
         username = null;
         updateUI();
     }
-    
-    public void startGame() throws IOException, SQLException{
-        String opponent=(String) response.get("data");
-        JSONObject game=new JSONObject();
+
+    public void startGame() throws IOException, SQLException {
+        String opponent = (String) response.get("data");
+        JSONObject game = new JSONObject();
         game.put("type", MassageType.CHALLENGE_START_MSG);
-        JSONObject player1=new JSONObject();
-        player1.put("player1",username);
-        player1.put("player2",opponent);
+        JSONObject player1 = new JSONObject();
+        player1.put("player1", username);
+        player1.put("player2", opponent);
         player1.put("isStarted", true);
-        JSONObject player2=new JSONObject();
-        player2.put("player1",username);
-        player2.put("player2",opponent);
+        JSONObject player2 = new JSONObject();
+        player2.put("player1", username);
+        player2.put("player2", opponent);
         player2.put("isStarted", false);
-        ServerHandler p1=availableClients.get(username);// depend on how will be player 1 the sender or the receiver
-        ServerHandler p2=availableClients.get(opponent);
-        if(p1!=null && p2!=null){
-            p1.currentOpponent=p2;
-            p1.inGame=true;
-            p1.isBetweenGame=false;
+        ServerHandler p1 = availableClients.get(username);// depend on how will be player 1 the sender or the receiver
+        ServerHandler p2 = availableClients.get(opponent);
+        if (p1 != null && p2 != null) {
+            p1.currentOpponent = p2;
+            p1.inGame = true;
+            p1.isBetweenGame = false;
             availableClients.remove(username);
             DAO.updateInGame(new DTOPlayer(username, ""));
-            p2.currentOpponent=p1;
-            p2.inGame=true;
-            p2.isBetweenGame=false;
+            p2.currentOpponent = p1;
+            p2.inGame = true;
+            p2.isBetweenGame = false;
             availableClients.remove(opponent);
             DAO.updateInGame(new DTOPlayer(opponent, ""));
             game.put("data", player1.toJSONString());
@@ -216,10 +220,9 @@ public class ServerHandler extends Thread {
             p2.messageOut.writeUTF(game.toJSONString());
             sendUsernamesToAvailable();
             updateUI();
+
         }
     }
-    
-    
 
     public static void sendToAll(String s) throws IOException {
         for (ServerHandler client : clients) {
@@ -241,7 +244,7 @@ public class ServerHandler extends Thread {
         currentOpponent.messageOut.writeUTF(msg);
     }
 
-    private void withdraw(String msg) throws IOException, SQLException {  
+    private void withdraw(String msg) throws IOException, SQLException {
         currentOpponent.messageOut.writeUTF(msg);
         // Update score for both players -->> Mayada hasn't finished this function
         currentOpponent.inGame = false;
@@ -249,13 +252,32 @@ public class ServerHandler extends Thread {
         availableClients.put(currentOpponent.username, currentOpponent);
         DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
         currentOpponent = null;
-        inGame=false;
+        inGame = false;
         availableClients.put(username, this);
         DAO.updateAvailable(new DTOPlayer(username, ""));
         ServerUIController.updateLabels();
         sendUsernamesToAvailable();
         updateUI();
     }
+
+    public void restartRequest() throws IOException {
+        JSONObject restartRequestMsg = new JSONObject();
+        restartRequestMsg.put("type", MassageType.RESTART_REQUEST_MSG);
+        currentOpponent.messageOut.writeUTF(restartRequestMsg.toJSONString());
+    }
+
+    public void restartGame() throws IOException {
+        JSONObject continueGameMsg = new JSONObject();
+        continueGameMsg.put("type", MassageType.CONTINUE_GAME_MSG);
+        messageOut.writeUTF(continueGameMsg.toJSONString());
+        currentOpponent.messageOut.writeUTF(continueGameMsg.toJSONString());
+
+    }
+    
+    public void endGame(){
+        //mayada end game task
+    }
+
     private void requestHandler(String msg) {
         //JSONObject challengeRequest = (JSONObject) JSONValue.parse((String) response.get("data"));
         String opponentUsername = (String) response.get("data");
@@ -283,8 +305,9 @@ public class ServerHandler extends Thread {
             }
         }
     }
-    public void withdrawFromGameInCloseClient() throws IOException, SQLException{
-        JSONObject withdraw=new JSONObject();
+
+    public void withdrawFromGameInCloseClient() throws IOException, SQLException {
+        JSONObject withdraw = new JSONObject();
         withdraw.put("type", MassageType.WITHDRAW_GAME_MSG);
         currentOpponent.messageOut.writeUTF(withdraw.toJSONString());
         // Update score for both players -->> Mayada hasn't finished this function
@@ -294,18 +317,18 @@ public class ServerHandler extends Thread {
         DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
         sendUsernamesToAvailable();
         currentOpponent = null;
-        inGame=false;
+        inGame = false;
         DAO.updateOffline(new DTOPlayer(username, ""));
         clients.remove(this);
-        username=null;
-        isFinished=true;
+        username = null;
+        isFinished = true;
         messageIn.close();
         messageOut.close();
         currentSocket.close();
     }
 
     private void endGameInCloseClient() throws IOException, SQLException {
-        JSONObject endGame=new JSONObject();
+        JSONObject endGame = new JSONObject();
         endGame.put("type", MassageType.END_GAME_MSG);
         currentOpponent.messageOut.writeUTF(endGame.toJSONString());
         currentOpponent.inGame = false;
@@ -314,11 +337,11 @@ public class ServerHandler extends Thread {
         DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
         sendUsernamesToAvailable();
         currentOpponent = null;
-        inGame=false;
+        inGame = false;
         DAO.updateOffline(new DTOPlayer(username, ""));
         clients.remove(this);
-        username=null;
-        isFinished=true;
+        username = null;
+        isFinished = true;
         messageIn.close();
         messageOut.close();
         currentSocket.close();
