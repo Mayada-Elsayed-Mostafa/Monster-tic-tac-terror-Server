@@ -67,6 +67,9 @@ public class ServerHandler extends Thread {
                 else if(msgType.equals(MassageType.WITHDRAW_GAME_MSG)){
                     withdraw(msg);
                 }
+                else if(msgType.equals(MassageType.IN_BETWEEN_GAME_MSG)){
+                    handleInBetweenGame(msg);
+                }
             } catch (IOException ex) {
                 try {
                     clientClose();
@@ -108,32 +111,20 @@ public class ServerHandler extends Thread {
 
     }
     
-    private void handleInBetweenGame(){// add in between massage type in the massage type class and handle it in the run
-        // make both players between game variable true and check if the game have a winner
-        /*
-        json object return for winning
-        {
-            "type":"in between game",
-            "data":{
-                "result":"win",
-                "winner":"username of the winner"
-            }
+    private void handleInBetweenGame(String msg){
+        isBetweenGame=true;
+        currentOpponent.isBetweenGame=true;
+        JSONObject object=(JSONObject) JSONValue.parse(msg);
+        JSONObject result=(JSONObject) JSONValue.parse((String) object.get("data"));
+        if(((String) result.get("result")).equals("win")){
+            String winner=(String) result.get("winner");
+            // Update score for the winner 
         }
-        json object return for tie
-        {
-            "type":"in between game",
-            "data":{
-                "result":"tie"
-            }
-        }
-        */
-        // Update score for the winning player -->> Mayada hasn't finished this function
     }
 
     private void signup(String msg) {
         try {
             JSONObject signResponse = new JSONObject();
-
             try {
                 JSONObject object = (JSONObject) JSONValue.parse((String) response.get("data"));
                 DTOPlayer user = new DTOPlayer((String) object.get("username"), (String) object.get("password"));
