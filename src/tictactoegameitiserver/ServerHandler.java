@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 // see the function inBetweenGame and do it if you need addtional tasks and add to the dash board and delete me
@@ -100,6 +101,7 @@ public class ServerHandler extends Thread {
                 loginData.put("data", null);
             }
             messageOut.writeUTF(loginData.toJSONString());
+            updateUI();
         } catch (IOException ex) {
             Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -147,6 +149,7 @@ public class ServerHandler extends Thread {
 
             }
             messageOut.writeUTF(signResponse.toJSONString());
+            updateUI();
         } catch (IOException ex) {
             Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -180,6 +183,7 @@ public class ServerHandler extends Thread {
             messageOut.close();
             currentSocket.close();
         }
+        updateUI();
     }
 
     public void logout() throws SQLException, IOException {
@@ -187,6 +191,7 @@ public class ServerHandler extends Thread {
         availableClients.remove(username);
         sendUsernamesToAvailable();
         username = null;
+        updateUI();
     }
     
     public void startGame() throws IOException, SQLException{
@@ -219,7 +224,7 @@ public class ServerHandler extends Thread {
             game.put("data", player2.toJSONString());
             p2.messageOut.writeUTF(game.toJSONString());
             sendUsernamesToAvailable();
-            
+            updateUI();
         }
     }
     
@@ -256,7 +261,9 @@ public class ServerHandler extends Thread {
         inGame=false;
         availableClients.put(username, this);
         DAO.updateAvailable(new DTOPlayer(username, ""));
+        ServerUIController.updateLabels();
         sendUsernamesToAvailable();
+        updateUI();
     }
     private void requestHandler(String msg) {
         //JSONObject challengeRequest = (JSONObject) JSONValue.parse((String) response.get("data"));
@@ -324,6 +331,13 @@ public class ServerHandler extends Thread {
         messageIn.close();
         messageOut.close();
         currentSocket.close();
+    }
+
+    private void updateUI() {
+        Platform.runLater(() -> {
+            ServerUIController.updateLabels();
+            ServerUIController.drawPieChart();
+        });
     }
 
 }
