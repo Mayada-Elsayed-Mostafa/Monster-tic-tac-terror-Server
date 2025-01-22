@@ -145,4 +145,30 @@ public class DAO {
         return rowsUpdated;
     }
 
+    public static void updateScore(DTO.DTOPlayer user) throws SQLException {
+        DriverManager.registerDriver(new ClientDriver());
+        Connection connection = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
+                "root", "root");
+        String selectQuery = "SELECT TOTAL_SCORE FROM PLAYER WHERE USERNAME = ?";
+        String updateQuery = "UPDATE PLAYER SET TOTAL_SCORE = ? WHERE USERNAME = ?";
+
+        try (PreparedStatement selectStmt = connection.prepareStatement(selectQuery)) {
+            selectStmt.setString(1, user.getUserName());
+            ResultSet rs = selectStmt.executeQuery();
+
+            if (rs.next()) {
+                int currentScore = rs.getInt("TOTAL_SCORE");
+                int updatedScore = currentScore + 10;
+
+                try (PreparedStatement updateStmt = connection.prepareStatement(updateQuery)) {
+                    updateStmt.setInt(1, updatedScore);
+                    updateStmt.setString(2, user.getUserName());
+                    updateStmt.executeUpdate();
+                }
+            } else {
+                throw new SQLException("User not found in the database.");
+            }
+        }
+    }
+
 }
