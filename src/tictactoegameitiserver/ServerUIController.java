@@ -21,16 +21,18 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 
 public class ServerUIController implements Initializable {
-    
-    public static ServerSocket server=null;
-    
-    public static boolean isFinished=true;
-    
+
+    public static ServerSocket server = null;
+
+    public static boolean isFinished = true;
+
+    public static boolean isClosed = true;
+
     private static Label numberOfAvailable;
     private static Label numberOfInGame;
     private static Label numberOfOffline;
     private static BorderPane pane;
-    
+
     private Label label;
     @FXML
     private BorderPane borderPane;
@@ -52,8 +54,7 @@ public class ServerUIController implements Initializable {
     private Label offlineLabel;
     @FXML
     private Label numberOfOfflineLabel;     // This number changes dynamically, when the server starts, it should have the number of users stored in the database
-    
-    
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         stopBtn.setDisable(true);
@@ -61,11 +62,14 @@ public class ServerUIController implements Initializable {
         numberOfInGame = numberOfInGameLabel;
         numberOfOffline = numberOfOfflineLabel;
         pane = borderPane;
-    }    
+    }
 
     @FXML
-    private void handleStartBtn(ActionEvent event){
+    private void handleStartBtn(ActionEvent event) throws SQLException {
+        ServerHandler.isFinished = false;
+        DAO.setAllOff();
         startServer();
+        isClosed = false;
         stopBtn.setDisable(false);
         startBtn.setDisable(true);
         updateLabels();
@@ -73,19 +77,27 @@ public class ServerUIController implements Initializable {
     }
 
     @FXML
-    private void handleStopBtn(ActionEvent event){
+    private void handleStopBtn(ActionEvent event) throws IOException, SQLException {
+        isClosed = true;
         stopBtn.setDisable(true);
         startBtn.setDisable(false);
         borderPane.setCenter(null);
         clearLabels();
-        // We should write the logic of Stop Button Here
+        ServerHandler.closeServer();
+        if (ServerUIController.server != null) {
+            ServerUIController.server.close();
+            server = null;
+        }
+        ServerHandler.isFinished = true;
     }
 
     public static void updateLabels() {
         try {
-            numberOfAvailable.setText(DAO.getAvailablePlayersForServer() + "");
-            numberOfInGame.setText(DAO.getInGamePlayersForServer() + "");
-            numberOfOffline.setText(DAO.getOfflinePlayersForServer() + "");
+            if (!isClosed) {
+                numberOfAvailable.setText(DAO.getAvailablePlayersForServer() + "");
+                numberOfInGame.setText(DAO.getInGamePlayersForServer() + "");
+                numberOfOffline.setText(DAO.getOfflinePlayersForServer() + "");
+            }
         } catch (SQLException ex) {
             Logger.getLogger(ServerUIController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -93,21 +105,24 @@ public class ServerUIController implements Initializable {
 
     private void startServer() {
         try {
-            server=new ServerSocket(5005);
+            server = new ServerSocket(5005);
         } catch (IOException ex) {
             Logger.getLogger(ServerUIController.class.getName()).log(Level.SEVERE, null, ex);
         }
-        ServerUIController.isFinished=false;
-        Thread start=new Thread(new Runnable() {
+        ServerUIController.isFinished = false;
+        Thread start = new Thread(new Runnable() {
             @Override
             public void run() {
-                while(!isFinished){
+                while (!isFinished) {
                     try {
-                        
-                        Socket s=server.accept();
-                        new ServerHandler(s);
+                        if (server != null) {
+                            Socket s = server.accept();
+                            ServerHandler.isFinished = false;
+                            new ServerHandler(s);
+                        }
+
                     } catch (IOException ex) {
-                        Logger.getLogger(ServerUIController.class.getName()).log(Level.SEVERE, null, ex);
+                        server = null;
                     }
                 }
             }
@@ -116,17 +131,19 @@ public class ServerUIController implements Initializable {
     }
 
     public static void drawPieChart() {
-        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
-                new PieChart.Data("Available", Integer.parseInt(numberOfAvailable.getText())),
-                new PieChart.Data("In-game", Integer.parseInt(numberOfInGame.getText())),
-                new PieChart.Data("Offline", Integer.parseInt(numberOfOffline.getText()))
-        );
-        PieChart pieChart = new PieChart(pieChartData);
-        pieChart.setClockwise(true);
-        pieChart.setLabelLineLength(50);
-        pieChart.setLabelsVisible(true);
-        pieChart.setStartAngle(180);
-        pane.setCenter(pieChart);
+        if (!isClosed) {
+            ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
+                    new PieChart.Data("Available", Integer.parseInt(numberOfAvailable.getText())),
+                    new PieChart.Data("In-game", Integer.parseInt(numberOfInGame.getText())),
+                    new PieChart.Data("Offline", Integer.parseInt(numberOfOffline.getText()))
+            );
+            PieChart pieChart = new PieChart(pieChartData);
+            pieChart.setClockwise(true);
+            pieChart.setLabelLineLength(50);
+            pieChart.setLabelsVisible(true);
+            pieChart.setStartAngle(180);
+            pane.setCenter(pieChart);
+        }
     }
 
     private void clearLabels() {
