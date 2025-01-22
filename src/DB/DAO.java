@@ -14,10 +14,11 @@ public class DAO {
         DriverManager.registerDriver(new ClientDriver());
         Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
                 "root", "root");
-        PreparedStatement ps = con.prepareStatement("select * from PLAYER where USERNAME = ? AND PASSWORD = ?",
+        PreparedStatement ps = con.prepareStatement("select * from PLAYER where USERNAME = ? AND PASSWORD = ? AND STATUS = ?",
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         ps.setString(1, user.getUserName());
         ps.setString(2, user.getPassword());
+        ps.setString(3, MassageType.STATUS_OFFLINE);
         ResultSet rs = ps.executeQuery();
         if (rs.next()) {
             exists = true;
