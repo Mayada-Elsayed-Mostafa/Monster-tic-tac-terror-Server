@@ -15,10 +15,6 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-// see the function inBetweenGame and do it if you need addtional tasks and add to the dash board and delete me
-// see the function inBetweenGame and do it if you need addtional tasks and add to the dash board and delete me
-// see the function inBetweenGame and do it if you need addtional tasks and add to the dash board and delete me
-// see the function inBetweenGame and do it if you need addtional tasks and add to the dash board and delete me
 
 public class ServerHandler extends Thread {
 
@@ -65,6 +61,8 @@ public class ServerHandler extends Thread {
                     play(msg);
                 } else if (msgType.equals(MassageType.RESTART_REQUEST_MSG)) {
                     restartRequest();
+                }else if (msgType.equals(MassageType.END_GAME_MSG)) {
+                    endGame();
                 }else if (msgType.equals(MassageType.RESTART_ACCEPT_MSG)) {
                     restartGame();
                 }else if (msgType.equals(MassageType.RESTART_REJECT_MSG)) {
@@ -117,14 +115,14 @@ public class ServerHandler extends Thread {
 
     }
 
-    private void handleInBetweenGame(String msg){
+    private void handleInBetweenGame(String msg) throws SQLException{
         isBetweenGame=true;
         currentOpponent.isBetweenGame=true;
         JSONObject object=(JSONObject) JSONValue.parse(msg);
         JSONObject result=(JSONObject) JSONValue.parse((String) object.get("data"));
         if(((String) result.get("result")).equals("win")){
             String winner=(String) result.get("winner");
-            // Update score for the winner 
+             DAO.updateScore(new DTOPlayer(winner, ""));
         }
     }
 
@@ -249,7 +247,7 @@ public class ServerHandler extends Thread {
             JSONObject withdraw = new JSONObject();
             withdraw.put("type", MassageType.WITHDRAW_GAME_MSG);
             currentOpponent.messageOut.writeUTF(withdraw.toJSONString());
-            // Update score for both players -->> Mayada hasn't finished this function
+            DAO.updateScore(new DTOPlayer(currentOpponent.username, ""));
             currentOpponent.inGame = false;
             currentOpponent.isBetweenGame=false;
             currentOpponent.currentOpponent = null;
@@ -294,9 +292,24 @@ public class ServerHandler extends Thread {
 
     }
     
-    public void endGame(){
+    public void endGame() throws IOException, SQLException{
         //mayada end game task
-        //
+        JSONObject end=new JSONObject();
+        end.put("type", MassageType.END_GAME_MSG);
+        currentOpponent.messageOut.writeUTF(end.toJSONString());
+        currentOpponent.currentOpponent=null;
+        currentOpponent.inGame=false;
+        currentOpponent.isBetweenGame=false;
+        
+        DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
+        availableClients.put(currentOpponent.username, currentOpponent);
+        currentOpponent = null;
+        inGame = false;
+        isBetweenGame=false;
+        DAO.updateAvailable(new DTOPlayer(username, ""));
+        availableClients.put(username, this);
+        sendUsernamesToAvailable();
+        
     }
 
     private void requestHandler(String msg) {
@@ -330,7 +343,7 @@ public class ServerHandler extends Thread {
         JSONObject withdraw = new JSONObject();
         withdraw.put("type", MassageType.WITHDRAW_GAME_MSG);
         currentOpponent.messageOut.writeUTF(withdraw.toJSONString());
-        // Update score for both players -->> Mayada hasn't finished this function
+        DAO.updateScore(new DTOPlayer(currentOpponent.username, ""));
         currentOpponent.inGame = false;
         currentOpponent.currentOpponent = null;
         availableClients.put(currentOpponent.username, currentOpponent);
@@ -352,6 +365,7 @@ public class ServerHandler extends Thread {
         endGame.put("type", MassageType.END_GAME_MSG);
         currentOpponent.messageOut.writeUTF(endGame.toJSONString());
         currentOpponent.inGame = false;
+        currentOpponent.isBetweenGame=false;
         currentOpponent.currentOpponent = null;
         availableClients.put(currentOpponent.username, currentOpponent);
         DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
