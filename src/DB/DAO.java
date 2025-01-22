@@ -170,5 +170,18 @@ public class DAO {
             }
         }
     }
+     public static int setAllOff() throws SQLException {
+        DriverManager.registerDriver(new ClientDriver());
+        Connection con = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
+                "root", "root");
+        PreparedStatement ps = con.prepareStatement("update Player set status = ?");
+
+        ps.setString(1, MassageType.STATUS_OFFLINE);
+        int rowsUpdated = ps.executeUpdate();
+        ps.close();
+        con.close();
+
+        return rowsUpdated;
+    }
 
 }

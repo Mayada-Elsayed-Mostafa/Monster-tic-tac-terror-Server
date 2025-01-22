@@ -1,6 +1,12 @@
 package tictactoegameitiserver;
 
+import DB.DAO;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
+import static javafx.application.Application.launch;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -16,6 +22,15 @@ public class TicTacToeGameITIServer extends Application {
         
         stage.setScene(scene);
         stage.show();
+        stage.setOnCloseRequest(event -> {
+            Platform.exit();
+            try {
+                DAO.setAllOff();
+            } catch (SQLException ex) {
+                Logger.getLogger(TicTacToeGameITIServer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            System.exit(0);
+        });
     }
 
     public static void main(String[] args) {

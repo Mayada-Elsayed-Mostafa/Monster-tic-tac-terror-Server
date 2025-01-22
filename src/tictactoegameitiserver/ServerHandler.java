@@ -30,7 +30,7 @@ public class ServerHandler extends Thread {
     String username = null;
     boolean inGame = false;
     ServerHandler currentOpponent = null;
-    boolean isFinished = false;
+    static boolean isFinished = false;
     Socket currentSocket;
     boolean isBetweenGame = false;
 
@@ -65,15 +65,13 @@ public class ServerHandler extends Thread {
                     play(msg);
                 } else if (msgType.equals(MassageType.RESTART_REQUEST_MSG)) {
                     restartRequest();
-                }else if (msgType.equals(MassageType.RESTART_ACCEPT_MSG)) {
+                } else if (msgType.equals(MassageType.RESTART_ACCEPT_MSG)) {
                     restartGame();
-                }else if (msgType.equals(MassageType.RESTART_REJECT_MSG)) {
+                } else if (msgType.equals(MassageType.RESTART_REJECT_MSG)) {
                     endGame();
-                }
-                else if (msgType.equals(MassageType.WITHDRAW_GAME_MSG)) {
+                } else if (msgType.equals(MassageType.WITHDRAW_GAME_MSG)) {
                     withdraw(msg);
-                }
-                else if(msgType.equals(MassageType.IN_BETWEEN_GAME_MSG)){
+                } else if (msgType.equals(MassageType.IN_BETWEEN_GAME_MSG)) {
                     handleInBetweenGame(msg);
                 }
             } catch (IOException ex) {
@@ -117,13 +115,13 @@ public class ServerHandler extends Thread {
 
     }
 
-    private void handleInBetweenGame(String msg){
-        isBetweenGame=true;
-        currentOpponent.isBetweenGame=true;
-        JSONObject object=(JSONObject) JSONValue.parse(msg);
-        JSONObject result=(JSONObject) JSONValue.parse((String) object.get("data"));
-        if(((String) result.get("result")).equals("win")){
-            String winner=(String) result.get("winner");
+    private void handleInBetweenGame(String msg) {
+        isBetweenGame = true;
+        currentOpponent.isBetweenGame = true;
+        JSONObject object = (JSONObject) JSONValue.parse(msg);
+        JSONObject result = (JSONObject) JSONValue.parse((String) object.get("data"));
+        if (((String) result.get("result")).equals("win")) {
+            String winner = (String) result.get("winner");
             // Update score for the winner 
         }
     }
@@ -273,8 +271,8 @@ public class ServerHandler extends Thread {
         currentOpponent.messageOut.writeUTF(continueGameMsg.toJSONString());
 
     }
-    
-    public void endGame(){
+
+    public void endGame() {
         //mayada end game task
     }
 
@@ -354,4 +352,12 @@ public class ServerHandler extends Thread {
         });
     }
 
+    public static void closeServer() throws IOException, SQLException {
+        JSONObject message = new JSONObject();
+        message.put("type", MassageType.SERVER_CLOSE_MSG);
+        for (ServerHandler client : clients) {
+            client.messageOut.writeUTF(message.toJSONString());
+            DAO.setAllOff();
+        }
+    }
 }
