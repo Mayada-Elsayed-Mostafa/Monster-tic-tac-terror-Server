@@ -1,9 +1,11 @@
 package tictactoegameitiserver;
 
+import DB.DAO;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,6 +25,11 @@ public class ServerUIController implements Initializable {
     public static ServerSocket server=null;
     
     public static boolean isFinished=true;
+    
+    private static Label numberOfAvailable;
+    private static Label numberOfInGame;
+    private static Label numberOfOffline;
+    private static BorderPane pane;
     
     private Label label;
     @FXML
@@ -49,19 +56,54 @@ public class ServerUIController implements Initializable {
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
-        // Fetch the numbers from the database and assign them to the labels
+        stopBtn.setDisable(true);
+        numberOfAvailable = numberOfAvailableLabel;
+        numberOfInGame = numberOfInGameLabel;
+        numberOfOffline = numberOfOfflineLabel;
+        pane = borderPane;
     }    
 
     @FXML
     private void handleStartBtn(ActionEvent event){
+        startServer();
+        stopBtn.setDisable(false);
+        startBtn.setDisable(true);
+        updateLabels();
+        drawPieChart();
+    }
+
+    @FXML
+    private void handleStopBtn(ActionEvent event){
+        stopBtn.setDisable(true);
+        startBtn.setDisable(false);
+        borderPane.setCenter(null);
+        clearLabels();
+        // We should write the logic of Stop Button Here
+    }
+
+    public static void updateLabels() {
+        try {
+            numberOfAvailable.setText(DAO.getAvailablePlayersForServer() + "");
+            numberOfInGame.setText(DAO.getInGamePlayersForServer() + "");
+            numberOfOffline.setText(DAO.getOfflinePlayersForServer() + "");
+        } catch (SQLException ex) {
+            Logger.getLogger(ServerUIController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void startServer() {
+        try {
+            server=new ServerSocket(5005);
+        } catch (IOException ex) {
+            Logger.getLogger(ServerUIController.class.getName()).log(Level.SEVERE, null, ex);
+        }
         ServerUIController.isFinished=false;
         Thread start=new Thread(new Runnable() {
             @Override
             public void run() {
                 while(!isFinished){
                     try {
-                        server=new ServerSocket(5005);
+                        
                         Socket s=server.accept();
                         new ServerHandler(s);
                     } catch (IOException ex) {
@@ -70,27 +112,26 @@ public class ServerUIController implements Initializable {
                 }
             }
         });
-        
+        start.start();
+    }
+
+    public static void drawPieChart() {
         ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
-                new PieChart.Data("Available", 10),
-                new PieChart.Data("In-game", 4),
-                new PieChart.Data("Offline", 20)
+                new PieChart.Data("Available", Integer.parseInt(numberOfAvailable.getText())),
+                new PieChart.Data("In-game", Integer.parseInt(numberOfInGame.getText())),
+                new PieChart.Data("Offline", Integer.parseInt(numberOfOffline.getText()))
         );
-        
         PieChart pieChart = new PieChart(pieChartData);
         pieChart.setClockwise(true);
         pieChart.setLabelLineLength(50);
         pieChart.setLabelsVisible(true);
         pieChart.setStartAngle(180);
-        borderPane.setCenter(pieChart);
-        
-        
+        pane.setCenter(pieChart);
     }
 
-    @FXML
-    private void handleStopBtn(ActionEvent event){
-        // This button is not clickable by default and when we click on the Start button, it becomes clickable
-        // We should write the logic of Stop Button Here
-        // When we click on it, the pieChart disappears
+    private void clearLabels() {
+        numberOfAvailable.setText("#");
+        numberOfInGame.setText("#");
+        numberOfOffline.setText("#");
     }
 }
