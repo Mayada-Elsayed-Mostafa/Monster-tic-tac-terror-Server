@@ -300,7 +300,6 @@ public class ServerHandler extends Thread {
         currentOpponent.currentOpponent=null;
         currentOpponent.inGame=false;
         currentOpponent.isBetweenGame=false;
-        
         DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
         availableClients.put(currentOpponent.username, currentOpponent);
         currentOpponent = null;
