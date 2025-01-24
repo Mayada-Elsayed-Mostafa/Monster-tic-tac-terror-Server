@@ -284,11 +284,12 @@ public class ServerHandler extends Thread {
     }
 
     public void restartGame() throws IOException {
+        isBetweenGame=false;
+        currentOpponent.isBetweenGame=false;
         JSONObject continueGameMsg = new JSONObject();
         continueGameMsg.put("type", MassageType.CONTINUE_GAME_MSG);
         messageOut.writeUTF(continueGameMsg.toJSONString());
         currentOpponent.messageOut.writeUTF(continueGameMsg.toJSONString());
-
     }
 
     
