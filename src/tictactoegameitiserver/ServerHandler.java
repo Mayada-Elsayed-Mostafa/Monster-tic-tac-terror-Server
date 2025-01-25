@@ -61,9 +61,9 @@ public class ServerHandler extends Thread {
                     play(msg);
                 } else if (msgType.equals(MassageType.RESTART_REQUEST_MSG)) {
                     restartRequest();
-                }else if (msgType.equals(MassageType.END_GAME_MSG)) {
+                } else if (msgType.equals(MassageType.END_GAME_MSG)) {
                     endGame();
-                }else if (msgType.equals(MassageType.RESTART_ACCEPT_MSG)) {
+                } else if (msgType.equals(MassageType.RESTART_ACCEPT_MSG)) {
                     restartGame();
                 } else if (msgType.equals(MassageType.RESTART_REJECT_MSG)) {
                     endGame();
@@ -96,11 +96,15 @@ public class ServerHandler extends Thread {
             if (isSuccessful) {
                 availableClients.put(user.getUserName(), this);
                 DAO.updateAvailable(user);
-                sendUsernamesToAvailable();
-
                 username = user.getUserName();
+                sendUsernamesToAvailable();
+                JSONObject data = new JSONObject();
+                data.put("userName", user.getUserName());
+                data.put("score", DAO.getTotalScore(user.getUserName()));
+                data.put("players", DAO.getavailablePlayersList(user.getUserName()));
+                
                 loginData.put("type", MassageType.LOGINSUCCESS_MSG);
-                loginData.put("data", DAO.getavailablePlayersList(username));
+                loginData.put("data", data);
             } else {
                 loginData.put("type", MassageType.LOGINFAIL_MSG);
                 loginData.put("data", null);
@@ -113,15 +117,14 @@ public class ServerHandler extends Thread {
 
     }
 
-
-    private void handleInBetweenGame(String msg) throws SQLException{
-        isBetweenGame=true;
-        currentOpponent.isBetweenGame=true;
-        JSONObject object=(JSONObject) JSONValue.parse(msg);
-        JSONObject result=(JSONObject) JSONValue.parse((String) object.get("data"));
-        if(((String) result.get("result")).equals("win")){
-            String winner=(String) result.get("winner");
-             DAO.updateScore(new DTOPlayer(winner, ""));
+    private void handleInBetweenGame(String msg) throws SQLException {
+        isBetweenGame = true;
+        currentOpponent.isBetweenGame = true;
+        JSONObject object = (JSONObject) JSONValue.parse(msg);
+        JSONObject result = (JSONObject) JSONValue.parse((String) object.get("data"));
+        if (((String) result.get("result")).equals("win")) {
+            String winner = (String) result.get("winner");
+            DAO.updateScore(new DTOPlayer(winner, ""));
         }
     }
 
@@ -229,10 +232,13 @@ public class ServerHandler extends Thread {
 
     public void sendUsernamesToAvailable() throws IOException, SQLException {
         for (ServerHandler handler : availableClients.values()) {
-            ArrayList<String> availablePlayersList = DAO.getavailablePlayersList(handler.username);
             JSONObject availablePlayers = new JSONObject();
+            JSONObject data = new JSONObject();
+            data.put("username", handler.username);
+            data.put("score", DAO.getTotalScore(handler.username));
+            data.put("players", DAO.getavailablePlayersList(handler.username));
             availablePlayers.put("type", MassageType.UPDATE_LIST_MSG);
-            availablePlayers.put("data", availablePlayersList);
+            availablePlayers.put("data", data);
             handler.messageOut.writeUTF(availablePlayers.toJSONString());
         }
     }
@@ -242,25 +248,24 @@ public class ServerHandler extends Thread {
     }
 
     private void withdraw(String msg) throws IOException, SQLException {
-        if(!isBetweenGame){
+        if (!isBetweenGame) {
             JSONObject withdraw = new JSONObject();
             withdraw.put("type", MassageType.WITHDRAW_GAME_MSG);
             currentOpponent.messageOut.writeUTF(withdraw.toJSONString());
             DAO.updateScore(new DTOPlayer(currentOpponent.username, ""));
             currentOpponent.inGame = false;
-            currentOpponent.isBetweenGame=false;
+            currentOpponent.isBetweenGame = false;
             currentOpponent.currentOpponent = null;
             availableClients.put(currentOpponent.username, currentOpponent);
             DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
             currentOpponent = null;
             inGame = false;
-            isBetweenGame=false;
+            isBetweenGame = false;
             availableClients.put(username, this);
             DAO.updateAvailable(new DTOPlayer(username, ""));
             sendUsernamesToAvailable();
             updateUI();
-        }
-        else{
+        } else {
             JSONObject withdraw = new JSONObject();
             withdraw.put("type", MassageType.END_GAME_MSG);
             currentOpponent.messageOut.writeUTF(withdraw.toJSONString());
@@ -284,32 +289,31 @@ public class ServerHandler extends Thread {
     }
 
     public void restartGame() throws IOException {
-        isBetweenGame=false;
-        currentOpponent.isBetweenGame=false;
+        isBetweenGame = false;
+        currentOpponent.isBetweenGame = false;
         JSONObject continueGameMsg = new JSONObject();
         continueGameMsg.put("type", MassageType.CONTINUE_GAME_MSG);
         messageOut.writeUTF(continueGameMsg.toJSONString());
         currentOpponent.messageOut.writeUTF(continueGameMsg.toJSONString());
     }
 
-    
-    public void endGame() throws IOException, SQLException{
+    public void endGame() throws IOException, SQLException {
         //mayada end game task
-        JSONObject end=new JSONObject();
+        JSONObject end = new JSONObject();
         end.put("type", MassageType.END_GAME_MSG);
         currentOpponent.messageOut.writeUTF(end.toJSONString());
-        currentOpponent.currentOpponent=null;
-        currentOpponent.inGame=false;
-        currentOpponent.isBetweenGame=false;
+        currentOpponent.currentOpponent = null;
+        currentOpponent.inGame = false;
+        currentOpponent.isBetweenGame = false;
         DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
         availableClients.put(currentOpponent.username, currentOpponent);
         currentOpponent = null;
         inGame = false;
-        isBetweenGame=false;
+        isBetweenGame = false;
         DAO.updateAvailable(new DTOPlayer(username, ""));
         availableClients.put(username, this);
         sendUsernamesToAvailable();
-        
+
     }
 
     private void requestHandler(String msg) {
@@ -365,7 +369,7 @@ public class ServerHandler extends Thread {
         endGame.put("type", MassageType.END_GAME_MSG);
         currentOpponent.messageOut.writeUTF(endGame.toJSONString());
         currentOpponent.inGame = false;
-        currentOpponent.isBetweenGame=false;
+        currentOpponent.isBetweenGame = false;
         currentOpponent.currentOpponent = null;
         availableClients.put(currentOpponent.username, currentOpponent);
         DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));

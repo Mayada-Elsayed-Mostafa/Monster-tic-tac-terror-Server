@@ -167,8 +167,10 @@ public class DAO {
                     updateStmt.executeUpdate();
                 }
             } else {
+                connection.close();
                 throw new SQLException("User not found in the database.");
             }
+            connection.close();
         }
     }
      public static int setAllOff() throws SQLException {
@@ -184,5 +186,27 @@ public class DAO {
 
         return rowsUpdated;
     }
-
+     
+    public static int  getTotalScore(String username) throws SQLException{
+        DriverManager.registerDriver(new ClientDriver());
+        Connection connection = DriverManager.getConnection("jdbc:derby://localhost:1527/Player",
+                "root", "root");
+        String selectQuery = "SELECT TOTAL_SCORE FROM PLAYER WHERE USERNAME = ?";
+        PreparedStatement selectStmt = connection.prepareStatement(selectQuery);
+        selectStmt.setString(1, username);
+        ResultSet rs = selectStmt.executeQuery();
+        if(rs.next()){
+            int totalScore=rs.getInt("TOTAL_SCORE");
+            selectStmt.close();
+            rs.close();
+            connection.close();
+            return totalScore;
+        }
+        else{
+            selectStmt.close();
+            rs.close();
+            connection.close();
+            throw new SQLException("User not found in the database.");
+        }
+    }
 }
