@@ -99,7 +99,7 @@ public class ServerHandler extends Thread {
                 username = user.getUserName();
                 sendUsernamesToAvailable();
                 JSONObject data = new JSONObject();
-                data.put("userName", user.getUserName());
+                data.put("username", user.getUserName());
                 data.put("score", DAO.getTotalScore(user.getUserName()));
                 data.put("players", DAO.getavailablePlayersList(user.getUserName()));
                 
@@ -258,12 +258,18 @@ public class ServerHandler extends Thread {
             currentOpponent.currentOpponent = null;
             availableClients.put(currentOpponent.username, currentOpponent);
             DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
+                        sendUsernamesToAvailable();
             currentOpponent = null;
             inGame = false;
             isBetweenGame = false;
             availableClients.put(username, this);
             DAO.updateAvailable(new DTOPlayer(username, ""));
-            sendUsernamesToAvailable();
+            try {
+                Thread.sleep(8000);
+                sendUsernamesToAvailable();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
             updateUI();
         } else {
             JSONObject withdraw = new JSONObject();
@@ -298,7 +304,6 @@ public class ServerHandler extends Thread {
     }
 
     public void endGame() throws IOException, SQLException {
-        //mayada end game task
         JSONObject end = new JSONObject();
         end.put("type", MassageType.END_GAME_MSG);
         currentOpponent.messageOut.writeUTF(end.toJSONString());
