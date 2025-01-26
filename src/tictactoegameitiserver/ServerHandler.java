@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -21,7 +21,7 @@ public class ServerHandler extends Thread {
     DataInputStream messageIn;
     DataOutputStream messageOut;
     static Vector<ServerHandler> clients = new Vector<ServerHandler>();
-    static HashMap<String, ServerHandler> availableClients = new HashMap<>();
+    static ConcurrentHashMap<String, ServerHandler> availableClients = new ConcurrentHashMap<>();
     JSONObject response;
     String username = null;
     boolean inGame = false;
@@ -318,6 +318,7 @@ public class ServerHandler extends Thread {
         DAO.updateAvailable(new DTOPlayer(username, ""));
         availableClients.put(username, this);
         sendUsernamesToAvailable();
+        updateUI();
 
     }
 
@@ -369,6 +370,7 @@ public class ServerHandler extends Thread {
         clients.remove(this);
         username = null;
         isFinished = true;
+        updateUI();
         messageIn.close();
         messageOut.close();
         currentSocket.close();
@@ -390,6 +392,7 @@ public class ServerHandler extends Thread {
         clients.remove(this);
         username = null;
         isFinished = true;
+        updateUI();
         messageIn.close();
         messageOut.close();
         currentSocket.close();
@@ -403,11 +406,12 @@ public class ServerHandler extends Thread {
     }
 
     public static void closeServer() throws IOException, SQLException {
-        JSONObject message = new JSONObject();
-        message.put("type", MassageType.SERVER_CLOSE_MSG);
-        for (ServerHandler client : clients) {
-            client.messageOut.writeUTF(message.toJSONString());
-            DAO.setAllOff();
+        for (int i=0;i<clients.size();i++) {
+            clients.get(i).currentSocket.close();
+            
         }
+        DAO.setAllOff();
+        clients.clear();
+        availableClients.clear();
     }
 }
