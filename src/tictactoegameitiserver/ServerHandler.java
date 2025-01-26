@@ -99,7 +99,7 @@ public class ServerHandler extends Thread {
                 username = user.getUserName();
                 sendUsernamesToAvailable();
                 JSONObject data = new JSONObject();
-                data.put("userName", user.getUserName());
+                data.put("username", user.getUserName());
                 data.put("score", DAO.getTotalScore(user.getUserName()));
                 data.put("players", DAO.getavailablePlayersList(user.getUserName()));
 
@@ -304,7 +304,6 @@ public class ServerHandler extends Thread {
     }
 
     public void endGame() throws IOException, SQLException {
-        //mayada end game task
         JSONObject end = new JSONObject();
         end.put("type", MassageType.END_GAME_MSG);
         currentOpponent.messageOut.writeUTF(end.toJSONString());
