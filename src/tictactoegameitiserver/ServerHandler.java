@@ -102,7 +102,7 @@ public class ServerHandler extends Thread {
                 data.put("userName", user.getUserName());
                 data.put("score", DAO.getTotalScore(user.getUserName()));
                 data.put("players", DAO.getavailablePlayersList(user.getUserName()));
-                
+
                 loginData.put("type", MassageType.LOGINSUCCESS_MSG);
                 loginData.put("data", data);
             } else {
@@ -256,14 +256,20 @@ public class ServerHandler extends Thread {
             currentOpponent.inGame = false;
             currentOpponent.isBetweenGame = false;
             currentOpponent.currentOpponent = null;
-            availableClients.put(currentOpponent.username, currentOpponent);
-            DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
-            currentOpponent = null;
+            availableClients.put(username, this);
             inGame = false;
             isBetweenGame = false;
-            availableClients.put(username, this);
             DAO.updateAvailable(new DTOPlayer(username, ""));
             sendUsernamesToAvailable();
+            availableClients.put(currentOpponent.username, currentOpponent);
+            DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
+            try {
+                Thread.sleep(10000);
+                sendUsernamesToAvailable();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            currentOpponent = null;
             updateUI();
         } else {
             JSONObject withdraw = new JSONObject();
@@ -352,7 +358,12 @@ public class ServerHandler extends Thread {
         currentOpponent.currentOpponent = null;
         availableClients.put(currentOpponent.username, currentOpponent);
         DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
-        sendUsernamesToAvailable();
+        try {
+            Thread.sleep(10000);
+            sendUsernamesToAvailable();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
         currentOpponent = null;
         inGame = false;
         DAO.updateOffline(new DTOPlayer(username, ""));
