@@ -133,9 +133,10 @@ public class ServerUIController implements Initializable {
     public static void drawPieChart() {
         if (!isClosed) {
             ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
-                    new PieChart.Data("Available", Integer.parseInt(numberOfAvailable.getText())),
                     new PieChart.Data("In-game", Integer.parseInt(numberOfInGame.getText())),
-                    new PieChart.Data("Offline", Integer.parseInt(numberOfOffline.getText()))
+                    new PieChart.Data("Offline", Integer.parseInt(numberOfOffline.getText())),
+                    new PieChart.Data("Available", Integer.parseInt(numberOfAvailable.getText()))
+
             );
             PieChart pieChart = new PieChart(pieChartData);
             pieChart.setClockwise(true);
