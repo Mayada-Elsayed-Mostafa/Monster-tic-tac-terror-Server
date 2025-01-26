@@ -11,14 +11,14 @@
 <?import javafx.scene.text.Font?>
 
 <Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tictactoegameitiserver.ServerUIController">
-   <ImageView fitHeight="400.0" fitWidth="600.0" pickOnBounds="true" preserveRatio="true">
+   <ImageView fitHeight="400.0" fitWidth="600.0" pickOnBounds="true">
       <image>
          <Image url="@../Assets/welcome.jpg" />
       </image>
    </ImageView>
     <BorderPane fx:id="borderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0">
    <bottom>
-      <FlowPane fx:id="buttonsFlowPane" prefHeight="67.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+      <FlowPane fx:id="buttonsFlowPane" prefHeight="120.0" prefWidth="600.0" BorderPane.alignment="CENTER">
          <children>
             <Button fx:id="startBtn" mnemonicParsing="false" onAction="#handleStartBtn" prefHeight="51.0" prefWidth="132.0" styleClass="green-rounded-Btn" text="  Start" textAlignment="CENTER">
                <font>
@@ -51,6 +51,12 @@
                   </graphic>
             </Button>
          </children>
+            <BorderPane.margin>
+               <Insets />
+            </BorderPane.margin>
+            <padding>
+               <Insets top="20.0" />
+            </padding>
       </FlowPane>
    </bottom>
    <top>
