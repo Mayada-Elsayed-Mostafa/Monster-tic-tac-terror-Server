@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -21,7 +21,7 @@ public class ServerHandler extends Thread {
     DataInputStream messageIn;
     DataOutputStream messageOut;
     static Vector<ServerHandler> clients = new Vector<ServerHandler>();
-    static HashMap<String, ServerHandler> availableClients = new HashMap<>();
+    static ConcurrentHashMap<String, ServerHandler> availableClients = new ConcurrentHashMap<>();
     JSONObject response;
     String username = null;
     boolean inGame = false;
@@ -99,10 +99,10 @@ public class ServerHandler extends Thread {
                 username = user.getUserName();
                 sendUsernamesToAvailable();
                 JSONObject data = new JSONObject();
-                data.put("userName", user.getUserName());
+                data.put("username", user.getUserName());
                 data.put("score", DAO.getTotalScore(user.getUserName()));
                 data.put("players", DAO.getavailablePlayersList(user.getUserName()));
-                
+
                 loginData.put("type", MassageType.LOGINSUCCESS_MSG);
                 loginData.put("data", data);
             } else {
@@ -256,14 +256,20 @@ public class ServerHandler extends Thread {
             currentOpponent.inGame = false;
             currentOpponent.isBetweenGame = false;
             currentOpponent.currentOpponent = null;
-            availableClients.put(currentOpponent.username, currentOpponent);
-            DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
-            currentOpponent = null;
+            availableClients.put(username, this);
             inGame = false;
             isBetweenGame = false;
-            availableClients.put(username, this);
             DAO.updateAvailable(new DTOPlayer(username, ""));
             sendUsernamesToAvailable();
+            availableClients.put(currentOpponent.username, currentOpponent);
+            DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
+            try {
+                Thread.sleep(10000);
+                sendUsernamesToAvailable();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            currentOpponent = null;
             updateUI();
         } else {
             JSONObject withdraw = new JSONObject();
@@ -298,7 +304,6 @@ public class ServerHandler extends Thread {
     }
 
     public void endGame() throws IOException, SQLException {
-        //mayada end game task
         JSONObject end = new JSONObject();
         end.put("type", MassageType.END_GAME_MSG);
         currentOpponent.messageOut.writeUTF(end.toJSONString());
@@ -313,6 +318,7 @@ public class ServerHandler extends Thread {
         DAO.updateAvailable(new DTOPlayer(username, ""));
         availableClients.put(username, this);
         sendUsernamesToAvailable();
+        updateUI();
 
     }
 
@@ -352,13 +358,19 @@ public class ServerHandler extends Thread {
         currentOpponent.currentOpponent = null;
         availableClients.put(currentOpponent.username, currentOpponent);
         DAO.updateAvailable(new DTOPlayer(currentOpponent.username, ""));
-        sendUsernamesToAvailable();
+        try {
+            Thread.sleep(10000);
+            sendUsernamesToAvailable();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ServerHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
         currentOpponent = null;
         inGame = false;
         DAO.updateOffline(new DTOPlayer(username, ""));
         clients.remove(this);
         username = null;
         isFinished = true;
+        updateUI();
         messageIn.close();
         messageOut.close();
         currentSocket.close();
@@ -380,6 +392,7 @@ public class ServerHandler extends Thread {
         clients.remove(this);
         username = null;
         isFinished = true;
+        updateUI();
         messageIn.close();
         messageOut.close();
         currentSocket.close();
@@ -393,11 +406,12 @@ public class ServerHandler extends Thread {
     }
 
     public static void closeServer() throws IOException, SQLException {
-        JSONObject message = new JSONObject();
-        message.put("type", MassageType.SERVER_CLOSE_MSG);
-        for (ServerHandler client : clients) {
-            client.messageOut.writeUTF(message.toJSONString());
-            DAO.setAllOff();
+        for (int i=0;i<clients.size();i++) {
+            clients.get(i).currentSocket.close();
+            
         }
+        DAO.setAllOff();
+        clients.clear();
+        availableClients.clear();
     }
 }
