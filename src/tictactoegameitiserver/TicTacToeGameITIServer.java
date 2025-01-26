@@ -20,7 +20,9 @@ public class TicTacToeGameITIServer extends Application {
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/Assets/icon.jpg")));
         Parent root = FXMLLoader.load(getClass().getResource("ServerUI.fxml"));
         Scene scene = new Scene(root);
-        
+        stage.setResizable(false);
+        stage.setWidth(600);
+        stage.setHeight(400);
         stage.setScene(scene);
         stage.show();
         stage.setOnCloseRequest(event -> {
