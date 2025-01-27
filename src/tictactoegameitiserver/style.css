@@ -1,0 +1,25 @@
+.button.green-rounded-Btn {
+    -fx-background-color: #29D4B2;
+    -fx-text-fill: white;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 15;
+}
+
+.button.green-rounded-Btn:hover {
+    -fx-background-color: #24B39B;
+}
+
+.button.red-rounded-Btn {
+    -fx-background-color: #F45162;
+    -fx-text-fill: white;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 15;
+}
+
+.button.red-rounded-Btn:hover {
+    -fx-background-color: #D63E54;
+}

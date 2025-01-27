@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tictactoegameitiserver.ServerUIController">
+   <ImageView fitHeight="400.0" fitWidth="600.0" pickOnBounds="true">
+      <image>
+         <Image url="@../Assets/welcome.jpg" />
+      </image>
+   </ImageView>
+    <BorderPane fx:id="borderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0">
+   <bottom>
+      <FlowPane fx:id="buttonsFlowPane" prefHeight="120.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+         <children>
+            <Button fx:id="startBtn" mnemonicParsing="false" onAction="#handleStartBtn" prefHeight="51.0" prefWidth="132.0" styleClass="green-rounded-Btn" text="  Start" textAlignment="CENTER">
+               <font>
+                  <Font name="Arial" size="24.0" />
+               </font>
+               <FlowPane.margin>
+                  <Insets left="100.0" right="50.0" />
+               </FlowPane.margin>
+                  <graphic>
+                     <ImageView fitHeight="21.0" fitWidth="17.0" pickOnBounds="true" preserveRatio="true" style="-fx-scale-x: 2; -fx-scale-y: 2;">
+                        <image>
+                           <Image url="@../Assets/play.png" />
+                        </image>
+                     </ImageView>
+                  </graphic>
+            </Button>
+            <Button fx:id="stopBtn" mnemonicParsing="false" onAction="#handleStopBtn" prefHeight="51.0" prefWidth="134.0" styleClass="red-rounded-Btn" text=" Stop" textAlignment="CENTER">
+               <font>
+                  <Font name="Arial" size="24.0" />
+               </font>
+               <FlowPane.margin>
+                  <Insets left="80.0" right="100.0" />
+               </FlowPane.margin>
+                  <graphic>
+                     <ImageView fitHeight="29.0" fitWidth="31.0" pickOnBounds="true" preserveRatio="true">
+                        <image>
+                           <Image url="@../Assets/stop.png" />
+                        </image>
+                     </ImageView>
+                  </graphic>
+            </Button>
+         </children>
+            <BorderPane.margin>
+               <Insets />
+            </BorderPane.margin>
+            <padding>
+               <Insets top="20.0" />
+            </padding>
+      </FlowPane>
+   </bottom>
+   <top>
+      <FlowPane prefHeight="65.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+         <children>
+            <Label fx:id="availableLabel" prefHeight="27.0" prefWidth="91.0" text="Available: " textFill="FORESTGREEN">
+               <FlowPane.margin>
+                  <Insets left="80.0" top="10.0" />
+               </FlowPane.margin>
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+            </Label>
+            <Label fx:id="numberOfAvailableLabel" text="#" textFill="FORESTGREEN">
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+               <FlowPane.margin>
+                  <Insets right="30.0" top="10.0" />
+               </FlowPane.margin>
+            </Label>
+            <Label fx:id="inGameLabel" prefHeight="27.0" prefWidth="83.0" text="In-Game: " textFill="#ff0038">
+               <FlowPane.margin>
+                  <Insets left="50.0" top="10.0" />
+               </FlowPane.margin>
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+            </Label>
+            <Label fx:id="numberOfInGameLabel" text="#" textFill="#ff0038">
+               <FlowPane.margin>
+                  <Insets right="30.0" top="10.0" />
+               </FlowPane.margin>
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+            </Label>
+            <Label fx:id="offlineLabel" text="Offline: " textFill="DARKORANGE">
+               <FlowPane.margin>
+                  <Insets left="50.0" top="10.0" />
+               </FlowPane.margin>
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+            </Label>
+            <Label fx:id="numberOfOfflineLabel" text="#" textFill="DARKORANGE">
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+               <FlowPane.margin>
+                  <Insets right="30.0" top="10.0" />
+               </FlowPane.margin>
+            </Label>
+         </children>
+      </FlowPane>
+   </top>
+</BorderPane>
+</Pane>
