@@ -62,6 +62,19 @@ cd server
 2. Monitor available/in-game/offline users and active game sessions.
 3. Stop the server using the Stop button once all sessions are completed.
 
+## Screenshots
+
+Here are some screenshots to showcase the application's features:
+
+## 1. Control Page
+![Control Page](images/Server_1.png)
+![Control Page](images/Server_2.png)
+
+## 2. In Game Mode
+![In Game Mode](images/Server_3.png)
+![In Game Mode](images/Server_4.png)
+![In Game Mode](images/Server_5.png)
+
 
 
 ## Contributors
